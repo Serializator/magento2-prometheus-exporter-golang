@@ -56,7 +56,7 @@ func (collector *environmentInfoCollector) Collect(metrics chan<- prometheus.Met
 
 	metrics <- prometheus.MustNewConstMetric(
 		collector.info,
-		prometheus.CounterValue, 1,
+		prometheus.GaugeValue, 1,
 		environmentInfo.Version, environmentInfo.Edition, environmentInfo.Mode,
 	)
 }
