@@ -28,6 +28,11 @@ func main() {
 		*config,
 	))
 
+	prometheus.MustRegister(collector.NewOrdersCollector(
+		*httpClient,
+		*config,
+	))
+
 	http.Handle("/metrics", promhttp.Handler())
 
 	// TODO: make the host to which the exporter will be bound configurable

@@ -62,6 +62,8 @@ func (collector *environmentInfoCollector) Collect(metrics chan<- prometheus.Met
 }
 
 func (collector *environmentInfoCollector) fetchAndDecodeEnvironmentInfo() (environmentInfoResponse, error) {
+	// TODO: refactor HTTP requests such that the Magento URL and authorization code can be re-used
+
 	environmentInfoResponse := &environmentInfoResponse{}
 
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/rest/V1/metrics/info", collector.config.Magento.Url), nil)
