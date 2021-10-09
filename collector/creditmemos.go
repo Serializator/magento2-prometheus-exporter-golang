@@ -10,7 +10,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type invoicesCollector struct {
+type creditmemosCollector struct {
 	// Dependencies for this collector are defined below
 	http   http.Client
 	config config.Config
@@ -19,26 +19,26 @@ type invoicesCollector struct {
 	total *prometheus.GaugeVec
 }
 
-func NewInvoicesCollector(http http.Client, config config.Config) *invoicesCollector {
-	return &invoicesCollector{
+func NewCreditmemosCollector(http http.Client, config config.Config) *creditmemosCollector {
+	return &creditmemosCollector{
 		http:   http,
 		config: config,
 
 		total: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: "magento",
-			Subsystem: "invoices",
+			Subsystem: "creditmemos",
 			Name:      "total",
-			Help:      "Total amount of invoices",
+			Help:      "Total amount of creditmemos",
 		}, []string{"state"}),
 	}
 }
 
-func (collector *invoicesCollector) Describe(descs chan<- *prometheus.Desc) {
+func (collector *creditmemosCollector) Describe(descs chan<- *prometheus.Desc) {
 	prometheus.DescribeByCollect(collector, descs)
 }
 
-func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
-	invoicesResponse, err := collector.fetchAndDecodeInvoices()
+func (collector *creditmemosCollector) Collect(metrics chan<- prometheus.Metric) {
+	creditMemosResponse, err := collector.fetchAndDecodeCreditMemos()
 	if err != nil {
 		// TODO: use "prometheus.NewInvalidMetric"
 		return
@@ -46,8 +46,8 @@ func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
 
 	collector.total.Reset()
 
-	for _, invoice := range invoicesResponse.Items {
-		state, err := invoice.State.String()
+	for _, creditmemo := range creditMemosResponse.Items {
+		state, err := creditmemo.State.String()
 		if err != nil {
 			// TODO: use "prometheus.NewInvalidMetric"
 			continue
@@ -65,10 +65,10 @@ func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
 	collector.total.Collect(metrics)
 }
 
-func (collector *invoicesCollector) fetchAndDecodeInvoices() (invoicesResponse, error) {
+func (collector *creditmemosCollector) fetchAndDecodeCreditMemos() (creditmemosResponse, error) {
 	// TODO: refactor HTTP requests such that the Magento URL and authorization code can be re-used
 
-	invoicesResponse := &invoicesResponse{}
+	creditmemosResponse := &creditmemosResponse{}
 
 	queryString := []string{
 		"searchCriteria[filter_groups][0][filters][0][field]=entity_id",
@@ -76,24 +76,24 @@ func (collector *invoicesCollector) fetchAndDecodeInvoices() (invoicesResponse, 
 		"searchCriteria[filter_groups][0][filters][0][condition_type]=gt",
 		"fields=items[state]",
 	}
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/rest/V1/invoices?%s",
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/rest/V1/creditmemos?%s",
 		collector.config.Magento.Url,
 		strings.Join(queryString, "&"),
 	), nil)
 	if err != nil {
-		return *invoicesResponse, err
+		return *creditmemosResponse, err
 	}
 
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", collector.config.Magento.Bearer))
 	response, err := collector.http.Do(request)
 	if err != nil {
-		return *invoicesResponse, err
+		return *creditmemosResponse, err
 	}
 
 	defer response.Body.Close()
-	if err := json.NewDecoder(response.Body).Decode(invoicesResponse); err != nil {
-		return *invoicesResponse, err
+	if err := json.NewDecoder(response.Body).Decode(creditmemosResponse); err != nil {
+		return *creditmemosResponse, err
 	}
 
-	return *invoicesResponse, nil
+	return *creditmemosResponse, nil
 }

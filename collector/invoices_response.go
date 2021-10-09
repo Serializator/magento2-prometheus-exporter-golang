@@ -1,25 +1,32 @@
 package collector
 
+import (
+	"fmt"
+)
+
 type invoicesResponse struct {
 	Items []struct {
-		State State `json:"state"`
+		State InvoiceState `json:"state"`
 	} `json:"items"`
 }
 
-type State int
+type InvoiceState int
 
 const (
-	Open = iota + 1
-	Paid
-	Cancelled
+	InvoiceOpen = iota + 1
+	InvoicePaid
+	InvoiceCancelled
 )
 
-func (state State) String() string {
-	return toString[state]
-}
+func (state InvoiceState) String() (string, error) {
+	switch state {
+	case InvoiceOpen:
+		return "open", nil
+	case InvoicePaid:
+		return "paid", nil
+	case InvoiceCancelled:
+		return "cancelled", nil
+	}
 
-var toString = map[State]string{
-	Open:      "open",
-	Paid:      "paid",
-	Cancelled: "cancelled",
+	return "", fmt.Errorf("unknown invoice state (%d)", state)
 }
