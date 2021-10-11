@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Serializator/magento2-prometheus-exporter-golang/config"
@@ -29,7 +30,7 @@ func NewOrdersCollector(http http.Client, config config.Config) *ordersCollector
 			Subsystem: "orders",
 			Name:      "total",
 			Help:      "Total amount of orders",
-		}, []string{"state", "status"}),
+		}, []string{"store_id", "state", "status", "payment_method"}),
 	}
 }
 
@@ -47,7 +48,7 @@ func (collector *ordersCollector) Collect(metrics chan<- prometheus.Metric) {
 	collector.total.Reset()
 
 	for _, order := range ordersResponse.Items {
-		counter, err := collector.total.GetMetricWithLabelValues(order.State, order.Status)
+		counter, err := collector.total.GetMetricWithLabelValues(strconv.FormatInt(order.StoreId, 10), order.State, order.Status, order.Payment.Method)
 		if err != nil {
 			prometheus.NewInvalidMetric(counter.Desc(), err)
 			continue
@@ -68,7 +69,7 @@ func (collector *ordersCollector) fetchAndDecodeOrders() (ordersResponse, error)
 		"searchCriteria[filter_groups][0][filters][0][field]=entity_id",
 		"searchCriteria[filter_groups][0][filters][0][value]=0",
 		"searchCriteria[filter_groups][0][filters][0][condition_type]=gt",
-		"fields=items[status,state]",
+		"fields=items[store_id,status,state,payment[method]]",
 	}
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/rest/V1/orders?%s",
 		collector.config.Magento.Url,
