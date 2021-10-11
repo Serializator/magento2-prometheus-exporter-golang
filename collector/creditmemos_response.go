@@ -4,6 +4,7 @@ import "fmt"
 
 type creditmemosResponse struct {
 	Items []struct {
+		StoreId int64 `json:"store_id"`
 		State CreditMemoState `json:"state"`
 	} `json:"items"`
 }
