@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Serializator/magento2-prometheus-exporter-golang/config"
@@ -29,7 +30,7 @@ func NewInvoicesCollector(http http.Client, config config.Config) *invoicesColle
 			Subsystem: "invoices",
 			Name:      "total",
 			Help:      "Total amount of invoices",
-		}, []string{"state"}),
+		}, []string{"store_id", "state"}),
 	}
 }
 
@@ -53,7 +54,7 @@ func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
 			continue
 		}
 
-		counter, err := collector.total.GetMetricWithLabelValues(state)
+		counter, err := collector.total.GetMetricWithLabelValues(strconv.FormatInt(invoice.StoreId, 10), state)
 		if err != nil {
 			prometheus.NewInvalidMetric(counter.Desc(), err)
 			continue
@@ -74,7 +75,7 @@ func (collector *invoicesCollector) fetchAndDecodeInvoices() (invoicesResponse, 
 		"searchCriteria[filter_groups][0][filters][0][field]=entity_id",
 		"searchCriteria[filter_groups][0][filters][0][value]=0",
 		"searchCriteria[filter_groups][0][filters][0][condition_type]=gt",
-		"fields=items[state]",
+		"fields=items[store_id,state]",
 	}
 	request, err := http.NewRequest("GET", fmt.Sprintf("%s/rest/V1/invoices?%s",
 		collector.config.Magento.Url,
