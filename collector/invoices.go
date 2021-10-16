@@ -3,7 +3,8 @@ package collector
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"github.com/Serializator/magento2-prometheus-exporter-golang/magento"
+	"io"
 	"strconv"
 	"strings"
 
@@ -13,16 +14,16 @@ import (
 
 type invoicesCollector struct {
 	// Dependencies for this collector are defined below
-	http   http.Client
+	client magento.Client
 	config config.Config
 
 	// Descriptors for this collector are defined below
 	total *prometheus.GaugeVec
 }
 
-func NewInvoicesCollector(http http.Client, config config.Config) *invoicesCollector {
+func NewInvoicesCollector(client magento.Client, config config.Config) *invoicesCollector {
 	return &invoicesCollector{
-		http:   http,
+		client: client,
 		config: config,
 
 		total: prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -67,8 +68,6 @@ func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
 }
 
 func (collector *invoicesCollector) fetchAndDecodeInvoices() (invoicesResponse, error) {
-	// TODO: refactor HTTP requests such that the Magento URL and authorization code can be re-used
-
 	invoicesResponse := &invoicesResponse{}
 
 	queryString := []string{
@@ -77,21 +76,14 @@ func (collector *invoicesCollector) fetchAndDecodeInvoices() (invoicesResponse, 
 		"searchCriteria[filter_groups][0][filters][0][condition_type]=gt",
 		"fields=items[store_id,state]",
 	}
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/rest/V1/invoices?%s",
-		collector.config.Magento.Url,
-		strings.Join(queryString, "&"),
-	), nil)
+	response, err := collector.client.Get(fmt.Sprintf("/invoices?%s", strings.Join(queryString, "&")))
 	if err != nil {
 		return *invoicesResponse, err
 	}
+	defer func(body io.ReadCloser) {
+		err = body.Close()
+	}(response.Body)
 
-	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", collector.config.Magento.Bearer))
-	response, err := collector.http.Do(request)
-	if err != nil {
-		return *invoicesResponse, err
-	}
-
-	defer response.Body.Close()
 	if err := json.NewDecoder(response.Body).Decode(invoicesResponse); err != nil {
 		return *invoicesResponse, err
 	}

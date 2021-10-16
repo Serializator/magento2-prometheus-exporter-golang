@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/Serializator/magento2-prometheus-exporter-golang/magento"
 	"log"
 	"net/http"
 	"time"
@@ -19,27 +21,29 @@ func main() {
 		panic(err)
 	}
 
-	httpClient := &http.Client{
-		Timeout: time.Second * 5,
-	}
+	client := magento.NewClient(
+		fmt.Sprintf("%s/%s", config.Magento.Url, "/rest/V1"),
+		magento.NewBearerAuthenticator(config.Magento.Bearer),
+		&http.Client{Timeout: time.Second * 5},
+	)
 
 	prometheus.MustRegister(collector.NewEnvironmentInfoCollector(
-		*httpClient,
+		*client,
 		*config,
 	))
 
 	prometheus.MustRegister(collector.NewOrdersCollector(
-		*httpClient,
+		*client,
 		*config,
 	))
 
 	prometheus.MustRegister(collector.NewInvoicesCollector(
-		*httpClient,
+		*client,
 		*config,
 	))
 
 	prometheus.MustRegister(collector.NewCreditmemosCollector(
-		*httpClient,
+		*client,
 		*config,
 	))
 
