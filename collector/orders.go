@@ -3,12 +3,10 @@ package collector
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
-
 	"github.com/Serializator/magento2-prometheus-exporter-golang/config"
 	"github.com/prometheus/client_golang/prometheus"
+	"net/http"
+	"strconv"
 )
 
 type ordersCollector struct {
@@ -47,48 +45,39 @@ func (collector *ordersCollector) Collect(metrics chan<- prometheus.Metric) {
 
 	collector.total.Reset()
 
-	for _, order := range ordersResponse.Items {
-		counter, err := collector.total.GetMetricWithLabelValues(strconv.FormatInt(order.StoreId, 10), order.State, order.Status, order.Payment.Method)
+	for _, order := range ordersResponse.Total {
+		counter, err := collector.total.GetMetricWithLabelValues(strconv.Itoa(order.StoreId), order.State, order.Status, order.PaymentMethod)
 		if err != nil {
 			prometheus.NewInvalidMetric(counter.Desc(), err)
 			continue
 		}
 
-		counter.Inc()
+		counter.Set(float64(order.Count))
 	}
 
 	collector.total.Collect(metrics)
 }
 
-func (collector *ordersCollector) fetchAndDecodeOrders() (ordersResponse, error) {
+func (collector *ordersCollector) fetchAndDecodeOrders() (*ordersResponse, error) {
 	// TODO: refactor HTTP requests such that the Magento URL and authorization code can be re-used
 
 	ordersResponse := &ordersResponse{}
 
-	queryString := []string{
-		"searchCriteria[filter_groups][0][filters][0][field]=entity_id",
-		"searchCriteria[filter_groups][0][filters][0][value]=0",
-		"searchCriteria[filter_groups][0][filters][0][condition_type]=gt",
-		"fields=items[store_id,status,state,payment[method]]",
-	}
-	request, err := http.NewRequest("GET", fmt.Sprintf("%s/rest/V1/orders?%s",
-		collector.config.Magento.Url,
-		strings.Join(queryString, "&"),
-	), nil)
+	request, err := http.NewRequest("GET", fmt.Sprintf("%s/rest/V1/metrics/orders", collector.config.Magento.Url), nil)
 	if err != nil {
-		return *ordersResponse, err
+		return nil, err
 	}
 
 	request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", collector.config.Magento.Bearer))
 	response, err := collector.http.Do(request)
 	if err != nil {
-		return *ordersResponse, err
+		return nil, err
 	}
 
 	defer response.Body.Close()
 	if err := json.NewDecoder(response.Body).Decode(ordersResponse); err != nil {
-		return *ordersResponse, err
+		return nil, err
 	}
 
-	return *ordersResponse, nil
+	return ordersResponse, nil
 }

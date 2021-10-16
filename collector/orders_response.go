@@ -1,12 +1,11 @@
 package collector
 
 type ordersResponse struct {
-	Items []struct {
-		StoreId int64 `json:"store_id"`
-		State  string `json:"state"`
+	Total []struct {
+		StoreId int `json:"store_id"`
 		Status string `json:"status"`
-		Payment struct{
-			Method string `json:"method"`
-		} `json:"payment"`
-	} `json:"items"`
+		State  string `json:"state"`
+		PaymentMethod string `json:"payment_method"`
+		Count int `json:"count"`
+	} `json:"total"`
 }
