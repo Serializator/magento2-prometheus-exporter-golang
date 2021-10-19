@@ -54,7 +54,7 @@ func (collector *creditmemosCollector) Collect(metrics chan<- prometheus.Metric)
 			continue
 		}
 
-		counter, err := collector.total.GetMetricWithLabelValues(strconv.FormatInt(creditmemo.StoreId, 10), state)
+		counter, err := collector.total.GetMetricWithLabelValues(strconv.Itoa(creditmemo.StoreId), state)
 		if err != nil {
 			prometheus.NewInvalidMetric(counter.Desc(), err)
 			continue

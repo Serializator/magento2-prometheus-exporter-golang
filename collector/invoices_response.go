@@ -6,7 +6,7 @@ import (
 
 type invoicesResponse struct {
 	Items []struct {
-		StoreId int64 `json:"store_id"`
+		StoreId int `json:"store_id"`
 		State InvoiceState `json:"state"`
 	} `json:"items"`
 }
