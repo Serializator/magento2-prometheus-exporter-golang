@@ -41,7 +41,7 @@ func (collector *creditmemosCollector) Collect(metrics chan<- prometheus.Metric)
 	if err != nil {
 		descs := make(chan *prometheus.Desc, 1)
 		collector.total.Describe(descs)
-		prometheus.NewInvalidMetric(<-descs, err)
+		metrics <- prometheus.NewInvalidMetric(<-descs, err)
 		return
 	}
 
@@ -56,7 +56,7 @@ func (collector *creditmemosCollector) Collect(metrics chan<- prometheus.Metric)
 
 		counter, err := collector.total.GetMetricWithLabelValues(strconv.Itoa(creditmemo.StoreId), state)
 		if err != nil {
-			prometheus.NewInvalidMetric(counter.Desc(), err)
+			metrics <- prometheus.NewInvalidMetric(counter.Desc(), err)
 			continue
 		}
 

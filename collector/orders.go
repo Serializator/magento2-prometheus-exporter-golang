@@ -38,7 +38,7 @@ func (collector *ordersCollector) Collect(metrics chan<- prometheus.Metric) {
 	if err != nil {
 		descs := make(chan *prometheus.Desc, 1)
 		collector.total.Describe(descs)
-		prometheus.NewInvalidMetric(<-descs, err)
+		metrics <- prometheus.NewInvalidMetric(<-descs, err)
 		return
 	}
 
@@ -47,7 +47,7 @@ func (collector *ordersCollector) Collect(metrics chan<- prometheus.Metric) {
 	for _, order := range ordersResponse.Total {
 		counter, err := collector.total.GetMetricWithLabelValues(strconv.Itoa(order.StoreId), order.State, order.Status, order.PaymentMethod)
 		if err != nil {
-			prometheus.NewInvalidMetric(counter.Desc(), err)
+			metrics <- prometheus.NewInvalidMetric(counter.Desc(), err)
 			continue
 		}
 

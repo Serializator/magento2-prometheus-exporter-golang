@@ -44,7 +44,7 @@ func (collector *environmentInfoCollector) Collect(metrics chan<- prometheus.Met
 
 	environmentInfo, err := collector.fetchAndDecodeEnvironmentInfo()
 	if err != nil {
-		prometheus.NewInvalidMetric(collector.up.Desc(), err)
+		metrics <- prometheus.NewInvalidMetric(collector.up.Desc(), err)
 		return
 	}
 
