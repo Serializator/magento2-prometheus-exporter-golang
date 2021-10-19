@@ -2,7 +2,6 @@ package collector
 
 import (
 	"encoding/json"
-	"github.com/Serializator/magento2-prometheus-exporter-golang/config"
 	"github.com/Serializator/magento2-prometheus-exporter-golang/magento"
 	"github.com/prometheus/client_golang/prometheus"
 	"io"
@@ -11,17 +10,15 @@ import (
 type environmentInfoCollector struct {
 	// Dependencies for this collector are defined below
 	client magento.Client
-	config config.Config
 
 	// Descriptors for this collector are defined below
 	up   prometheus.Gauge
 	info *prometheus.Desc
 }
 
-func NewEnvironmentInfoCollector(client magento.Client, config config.Config) *environmentInfoCollector {
+func NewEnvironmentInfoCollector(client magento.Client) *environmentInfoCollector {
 	return &environmentInfoCollector{
 		client: client,
-		config: config,
 
 		up: prometheus.NewGauge(prometheus.GaugeOpts{
 			Name: prometheus.BuildFQName("magento", "environment", "up"),

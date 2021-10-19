@@ -2,7 +2,6 @@ package collector
 
 import (
 	"encoding/json"
-	"github.com/Serializator/magento2-prometheus-exporter-golang/config"
 	"github.com/Serializator/magento2-prometheus-exporter-golang/magento"
 	"github.com/prometheus/client_golang/prometheus"
 	"io"
@@ -12,16 +11,14 @@ import (
 type ordersCollector struct {
 	// Dependencies for this collector are defined below
 	client magento.Client
-	config config.Config
 
 	// Descriptors for this collector are defined below
 	total *prometheus.GaugeVec
 }
 
-func NewOrdersCollector(client magento.Client, config config.Config) *ordersCollector {
+func NewOrdersCollector(client magento.Client) *ordersCollector {
 	return &ordersCollector{
 		client: client,
-		config: config,
 
 		total: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: "magento",

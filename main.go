@@ -21,31 +21,16 @@ func main() {
 		panic(err)
 	}
 
-	client := magento.NewClient(
+	client := *magento.NewClient(
 		fmt.Sprintf("%s/%s", config.Magento.Url, "/rest/V1"),
 		magento.NewBearerAuthenticator(config.Magento.Bearer),
 		&http.Client{Timeout: time.Second * 5},
 	)
 
-	prometheus.MustRegister(collector.NewEnvironmentInfoCollector(
-		*client,
-		*config,
-	))
-
-	prometheus.MustRegister(collector.NewOrdersCollector(
-		*client,
-		*config,
-	))
-
-	prometheus.MustRegister(collector.NewInvoicesCollector(
-		*client,
-		*config,
-	))
-
-	prometheus.MustRegister(collector.NewCreditmemosCollector(
-		*client,
-		*config,
-	))
+	prometheus.MustRegister(collector.NewEnvironmentInfoCollector(client))
+	prometheus.MustRegister(collector.NewOrdersCollector(client))
+	prometheus.MustRegister(collector.NewInvoicesCollector(client))
+	prometheus.MustRegister(collector.NewCreditmemosCollector(client))
 
 	http.Handle("/metrics", promhttp.Handler())
 

@@ -7,8 +7,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
-
-	"github.com/Serializator/magento2-prometheus-exporter-golang/config"
 )
 
 func TestEnvironmentInfo(t *testing.T) {
@@ -27,15 +25,7 @@ func TestEnvironmentInfo(t *testing.T) {
 		testHttpServerUrl.String(),
 		magento.NewBearerAuthenticator(""),
 		http.DefaultClient,
-	), config.Config{
-		Magento: struct {
-			Url    string
-			Bearer string
-		}{
-			Url:    testHttpServerUrl.String(),
-			Bearer: "",
-		},
-	})
+	))
 
 	environmentInfoResponse, err := environmentInfo.fetchAndDecodeEnvironmentInfo()
 	if err != nil {

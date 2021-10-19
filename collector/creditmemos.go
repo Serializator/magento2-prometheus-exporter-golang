@@ -8,23 +8,20 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Serializator/magento2-prometheus-exporter-golang/config"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 type creditmemosCollector struct {
 	// Dependencies for this collector are defined below
 	client magento.Client
-	config config.Config
 
 	// Descriptors for this collector are defined below
 	total *prometheus.GaugeVec
 }
 
-func NewCreditmemosCollector(client magento.Client, config config.Config) *creditmemosCollector {
+func NewCreditmemosCollector(client magento.Client) *creditmemosCollector {
 	return &creditmemosCollector{
 		client: client,
-		config: config,
 
 		total: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: "magento",
