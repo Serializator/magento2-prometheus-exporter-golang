@@ -42,7 +42,9 @@ func (collector *invoicesCollector) Describe(descs chan<- *prometheus.Desc) {
 func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
 	invoicesResponse, err := collector.fetchAndDecodeInvoices()
 	if err != nil {
-		// TODO: use "prometheus.NewInvalidMetric"
+		descs := make(chan *prometheus.Desc, 1)
+		collector.total.Describe(descs)
+		prometheus.NewInvalidMetric(<-descs, err)
 		return
 	}
 

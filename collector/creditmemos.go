@@ -42,7 +42,9 @@ func (collector *creditmemosCollector) Describe(descs chan<- *prometheus.Desc) {
 func (collector *creditmemosCollector) Collect(metrics chan<- prometheus.Metric) {
 	creditMemosResponse, err := collector.fetchAndDecodeCreditMemos()
 	if err != nil {
-		// TODO: use "prometheus.NewInvalidMetric"
+		descs := make(chan *prometheus.Desc, 1)
+		collector.total.Describe(descs)
+		prometheus.NewInvalidMetric(<-descs, err)
 		return
 	}
 

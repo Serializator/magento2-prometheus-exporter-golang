@@ -2,7 +2,6 @@ package collector
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Serializator/magento2-prometheus-exporter-golang/config"
 	"github.com/Serializator/magento2-prometheus-exporter-golang/magento"
 	"github.com/prometheus/client_golang/prometheus"
@@ -48,7 +47,7 @@ func (collector *environmentInfoCollector) Collect(metrics chan<- prometheus.Met
 
 	environmentInfo, err := collector.fetchAndDecodeEnvironmentInfo()
 	if err != nil {
-		collector.up.Set(0)
+		prometheus.NewInvalidMetric(collector.up.Desc(), err)
 		return
 	}
 

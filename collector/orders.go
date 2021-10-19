@@ -39,7 +39,9 @@ func (collector *ordersCollector) Describe(descs chan<- *prometheus.Desc) {
 func (collector *ordersCollector) Collect(metrics chan<- prometheus.Metric) {
 	ordersResponse, err := collector.fetchAndDecodeOrders()
 	if err != nil {
-		// TODO: use "prometheus.NewInvalidMetric"
+		descs := make(chan *prometheus.Desc, 1)
+		collector.total.Describe(descs)
+		prometheus.NewInvalidMetric(<-descs, err)
 		return
 	}
 
