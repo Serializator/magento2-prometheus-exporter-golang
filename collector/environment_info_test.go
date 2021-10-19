@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"github.com/Serializator/magento2-prometheus-exporter-golang/magento"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -22,7 +23,11 @@ func TestEnvironmentInfo(t *testing.T) {
 		t.Fatalf("Failed to parse URL of the HTTP test server: %s", err)
 	}
 
-	environmentInfo := NewEnvironmentInfoCollector(*http.DefaultClient, config.Config{
+	environmentInfo := NewEnvironmentInfoCollector(*magento.NewClient(
+		testHttpServerUrl.String(),
+		magento.NewBearerAuthenticator(""),
+		http.DefaultClient,
+	), config.Config{
 		Magento: struct {
 			Url    string
 			Bearer string
