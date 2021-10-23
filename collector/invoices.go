@@ -2,13 +2,10 @@ package collector
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Serializator/magento2-prometheus-exporter-golang/magento"
+	"github.com/prometheus/client_golang/prometheus"
 	"io"
 	"strconv"
-	"strings"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 type invoicesCollector struct {
@@ -47,20 +44,14 @@ func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
 
 	collector.total.Reset()
 
-	for _, invoice := range invoicesResponse.Items {
-		state, err := invoice.State.String()
-		if err != nil {
-			// TODO: use "prometheus.NewInvalidMetric"
-			continue
-		}
-
-		counter, err := collector.total.GetMetricWithLabelValues(strconv.Itoa(invoice.StoreId), state)
+	for _, invoiceMetricAggregation := range invoicesResponse.Total {
+		counter, err := collector.total.GetMetricWithLabelValues(strconv.Itoa(invoiceMetricAggregation.StoreId), invoiceMetricAggregation.State)
 		if err != nil {
 			metrics <- prometheus.NewInvalidMetric(counter.Desc(), err)
 			continue
 		}
 
-		counter.Inc()
+		counter.Set(float64(invoiceMetricAggregation.Count))
 	}
 
 	collector.total.Collect(metrics)
@@ -69,13 +60,7 @@ func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
 func (collector *invoicesCollector) fetchAndDecodeInvoices() (invoicesResponse, error) {
 	invoicesResponse := &invoicesResponse{}
 
-	queryString := []string{
-		"searchCriteria[filter_groups][0][filters][0][field]=entity_id",
-		"searchCriteria[filter_groups][0][filters][0][value]=0",
-		"searchCriteria[filter_groups][0][filters][0][condition_type]=gt",
-		"fields=items[store_id,state]",
-	}
-	response, err := collector.client.Get(fmt.Sprintf("/invoices?%s", strings.Join(queryString, "&")))
+	response, err := collector.client.Get("/metrics/invoices")
 	if err != nil {
 		return *invoicesResponse, err
 	}
