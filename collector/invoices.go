@@ -13,14 +13,14 @@ type invoicesCollector struct {
 	client magento.Client
 
 	// Descriptors for this collector are defined below
-	total *prometheus.GaugeVec
+	total *prometheus.CounterVec
 }
 
 func NewInvoicesCollector(client magento.Client) *invoicesCollector {
 	return &invoicesCollector{
 		client: client,
 
-		total: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		total: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: "invoices",
 			Name:      "total",
@@ -42,6 +42,7 @@ func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
 		return
 	}
 
+	// reset the counter because we are working with the amount of invoices from its entire lifetime, *not* incremental amounts
 	collector.total.Reset()
 
 	for _, invoiceMetricAggregation := range invoicesResponse.Total {
@@ -51,7 +52,7 @@ func (collector *invoicesCollector) Collect(metrics chan<- prometheus.Metric) {
 			continue
 		}
 
-		counter.Set(float64(invoiceMetricAggregation.Count))
+		counter.Add(float64(invoiceMetricAggregation.Count))
 	}
 
 	collector.total.Collect(metrics)
