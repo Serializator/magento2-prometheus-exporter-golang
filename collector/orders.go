@@ -21,7 +21,7 @@ func NewOrdersCollector(client magento.Client) *ordersCollector {
 		client: client,
 
 		total: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Namespace: "magento",
+			Namespace: namespace,
 			Subsystem: "orders",
 			Name:      "total",
 			Help:      "Total amount of orders",

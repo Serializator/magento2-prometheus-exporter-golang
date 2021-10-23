@@ -21,7 +21,7 @@ func NewInvoicesCollector(client magento.Client) *invoicesCollector {
 		client: client,
 
 		total: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Namespace: "magento",
+			Namespace: namespace,
 			Subsystem: "invoices",
 			Name:      "total",
 			Help:      "Total amount of invoices",

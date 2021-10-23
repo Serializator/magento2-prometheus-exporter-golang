@@ -24,7 +24,7 @@ func NewCreditmemosCollector(client magento.Client) *creditmemosCollector {
 		client: client,
 
 		total: prometheus.NewGaugeVec(prometheus.GaugeOpts{
-			Namespace: "magento",
+			Namespace: namespace,
 			Subsystem: "creditmemos",
 			Name:      "total",
 			Help:      "Total amount of creditmemos",

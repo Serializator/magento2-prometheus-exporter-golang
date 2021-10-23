@@ -21,12 +21,12 @@ func NewEnvironmentInfoCollector(client magento.Client) *environmentInfoCollecto
 		client: client,
 
 		up: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: prometheus.BuildFQName("magento", "environment", "up"),
+			Name: prometheus.BuildFQName(namespace, "environment", "up"),
 			Help: "Was the last scrape of the Magento environment successful.",
 		}),
 
 		info: prometheus.NewDesc(
-			prometheus.BuildFQName("magento", "environment", "info"),
+			prometheus.BuildFQName(namespace, "environment", "info"),
 			"Information about the Magento environment from which the exporter is pulling its metrics.",
 			[]string{"version", "edition", "mode"}, nil,
 		),
